@@ -56,13 +56,20 @@ public class UserJpaController {
 //        return ResponseEntity.created(null).build();
     }
 
-    @DeleteMapping("/jpa/users/{userId}")
-    public ResponseEntity<String> deleteUser(@PathVariable int userId) throws UserNotfoundException {
-        userRepository.deleteById(userId);
+    @GetMapping("/post/users/{userId}")
+    public ResponseEntity<List<?>> retrievePostsForUsers(@PathVariable int userId) throws UserNotfoundException {
+//        userRepository.deleteById(userId);
 //        if(message.toLowerCase().contentEquals("SuccessFully Deleted".toLowerCase())){
 //            return new ResponseEntity<>(message, HttpStatus.OK);
 //        }
-        return new ResponseEntity<>("Deleted the user: " + userId, HttpStatus.BAD_REQUEST);
+        Optional<User> user = Optional.ofNullable(userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotfoundException("No user was found for this id")));
+//        EntityModel<User> userEntityModel = EntityModel.of(user.get());
+//        WebMvcLinkBuilder link = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).retrieveAllUsers());
+//        userEntityModel.add(link.withRel("all-users"));
+
+        List<?> posts = user.get().getPostList();
+        return new ResponseEntity<>(posts, HttpStatus.OK);
 
     }
 
