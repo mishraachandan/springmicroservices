@@ -1,8 +1,10 @@
 package com.rest.webservices.restfulwebservices.controller;
 
 import com.rest.webservices.restfulwebservices.dao.UserDaoService;
+import com.rest.webservices.restfulwebservices.entity.Post;
 import com.rest.webservices.restfulwebservices.entity.User;
 import com.rest.webservices.restfulwebservices.exception.UserNotfoundException;
+import com.rest.webservices.restfulwebservices.repository.PostRepository;
 import com.rest.webservices.restfulwebservices.repository.UserRepository;
 import jakarta.validation.Valid;
 import org.springframework.hateoas.EntityModel;
@@ -22,9 +24,12 @@ public class UserJpaController {
 
     private final UserRepository userRepository;
 
-    public UserJpaController(UserDaoService userDaoService, UserRepository userRepository){
+    private final PostRepository postRepository;
+
+    public UserJpaController(UserDaoService userDaoService, UserRepository userRepository, PostRepository postRepository) {
         this.userDaoService = userDaoService;
         this.userRepository = userRepository;
+        this.postRepository = postRepository;
     }
 
     // using constructor injection
@@ -70,6 +75,32 @@ public class UserJpaController {
 
         List<?> posts = user.get().getPostList();
         return new ResponseEntity<>(posts, HttpStatus.OK);
+
+    }
+
+    @PostMapping("/jpa/users/{userId}/post")
+    public ResponseEntity<List<?>> createPostsForUsers(@PathVariable int userId, @Valid @RequestBody Post post) throws UserNotfoundException {
+//        userRepository.deleteById(userId);
+//        if(message.toLowerCase().contentEquals("SuccessFully Deleted".toLowerCase())){
+//            return new ResponseEntity<>(message, HttpStatus.OK);
+
+
+        Optional<User> user = Optional.ofNullable(userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotfoundException("No user was found for this id")));
+        post.setUser(user.get());
+//        post.setDescription(post.getDescription());
+        Post saved = postRepository.save(post);
+
+//        EntityModel<User> userEntityModel = EntityModel.of(user.get());
+//        WebMvcLinkBuilder link = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).retrieveAllUsers());
+//        userEntityModel.add(link.withRel("all-users"));
+
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").
+                // because of the above http://localhost:8080/users is fetched..
+                        buildAndExpand(post.getId()).toUri();
+
+        List<?> posts = user.get().getPostList();
+        return ResponseEntity.created(location).build();
 
     }
 
