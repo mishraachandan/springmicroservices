@@ -61,7 +61,7 @@ public class UserJpaController {
 //        return ResponseEntity.created(null).build();
     }
 
-    @GetMapping("/post/users/{userId}")
+    @GetMapping("/jpa/users")
     public ResponseEntity<List<?>> retrievePostsForUsers(@PathVariable int userId) throws UserNotfoundException {
 //        userRepository.deleteById(userId);
 //        if(message.toLowerCase().contentEquals("SuccessFully Deleted".toLowerCase())){
